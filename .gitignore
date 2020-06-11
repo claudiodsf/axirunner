@@ -1,0 +1,12 @@
+#Extensions
+*.pyc
+*.swp
+
+#Temporary files
+*~
+
+#Build products
+*.egg-info/
+dist/
+build/
+RELEASE-VERSION

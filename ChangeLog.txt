@@ -1,0 +1,6 @@
+PyAxitra
+Python bindings to Axitra
+(c) 2020 Claudio Satriano <satriano@ipgp.fr>
+
+v0.1 - 2020-04-XX
+	- Initial release
