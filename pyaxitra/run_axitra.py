@@ -177,7 +177,8 @@ def project(config):
     stations_xyz = []
     for station in config.stations:
         # projection output is in meters
-        x, y = p(station[2], station[1])
+        # AXITRA convention is x=north and y=east
+        y, x = p(station[2], station[1])
         # convert z to meters
         z = station[3]*1e3
         stations_xyz.append([station[0], x, y, z])
@@ -185,7 +186,8 @@ def project(config):
     sources_xyz = []
     for source in config.sources:
         # projection output is in meters
-        x, y = p(source[1], source[0])
+        # AXITRA convention is x=north and y=east
+        y, x = p(source[1], source[0])
         # convert z to meters
         z = source[2]*1e3
         sources_xyz.append([x, y, z] + source[3:8])
@@ -233,6 +235,7 @@ def run_convms(config):
 
 
 def update_traces(config):
+    # AXITRA convention is x=north and y=east
     cmp = {'X': 'N', 'Y': 'E', 'Z': 'Z'}
     instr = {'velocity': 'H', 'displacement': 'H', 'acceleration': 'N'}
     for n, station in enumerate(config.stations):
