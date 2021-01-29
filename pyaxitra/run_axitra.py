@@ -90,8 +90,20 @@ def read_model_file(config):
     except Exception as err:
         err_exit(err)
     layers = []
+    skip = False
     for line in fp.readlines():
         words = line.split()
+        if line.strip().startswith('//'):
+            continue
+        if line.strip().startswith('#'):
+            continue
+        if line.strip().startswith('/*'):
+            skip = True
+        if line.strip().endswith('*/'):
+            skip = False
+            continue
+        if skip:
+            continue
         if len(words) < 6:
             continue
         try:
