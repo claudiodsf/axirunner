@@ -53,7 +53,18 @@ def write_axi_data(config):
     free_surface = '.true.' if config.free_surface else '.false'
     axi_data += 'latlon=.false.,freesurface={},'.format(free_surface)
     axi_data += 'sourcefile="source.xyz",statfile="station.xyz"\n//\n'
+    # From AXITRA README:
+    # (2) in free format and for each layer:
+    # - thickness (or depth of the upper interface), vp, vs, rho, qp,qs
+    #   Units are [m, m/s and Kg/m^3], or [km, km/s and Kg/km^3]
+    #   If you specify the upper interface depth, it must be set to 0. for the
+    #   free surface. !!!! rho unit must be consistent with the length unit
+    #   (m or km) !!!!
     for layer in config.layers:
+        layer[0] *= 1e3  # km --> m;
+        layer[1] *= 1e3  # km/s --> m/s;
+        layer[2] *= 1e3  # km/s --> m/s;
+        layer[3] *= 1e3  # g/cm3 --> kg/m3
         line = '{} {} {} {} {} {}'.format(*layer[:6])
         axi_data += line + '\n'
     outfile = os.path.join(config.run_name, 'axi.data')
@@ -163,26 +174,20 @@ def project(config):
     lat1 = np.floor(np.min(lats))
     lat2 = np.ceil(np.max(lats))
     p = Proj(proj='lcc', lat_0=lat0, lon_0=lon0, lat_1=lat1, lat_2=lat2)
-    if config.length_unit == 'km':
-        divide = 1e3
-        multiply = 1
-    else:
-        divide = 1.
-        multiply = 1e3
     stations_xyz = []
     for station in config.stations:
+        # projection output is in meters
         x, y = p(station[2], station[1])
-        x = x/divide
-        y = y/divide
-        z = station[3]*multiply
+        # convert z to meters
+        z = station[3]*1e3
         stations_xyz.append([station[0], x, y, z])
     config.stations_xyz = stations_xyz
     sources_xyz = []
     for source in config.sources:
+        # projection output is in meters
         x, y = p(source[1], source[0])
-        x = x/divide
-        y = y/divide
-        z = source[2]*multiply
+        # convert z to meters
+        z = source[2]*1e3
         sources_xyz.append([x, y, z] + source[3:8])
     config.sources_xyz = sources_xyz
     config.projection = p
