@@ -161,7 +161,7 @@ def read_source_file(config):
 def project(config):
     if not config.geographical_coordinates:
         config.stations_xyz = config.stations
-        config.sources_xyz = config.ssources
+        config.sources_xyz = config.sources
         return
     lats_sta = np.array([s[1] for s in config.stations])
     lons_sta = np.array([s[2] for s in config.stations])
