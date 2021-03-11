@@ -1,0 +1,12 @@
+# Example velocity model file in "nd" (named discontinuites) format
+#   The file is made of one ore more lines with:
+#     depth(km) Vp(km/s) Vs(km/s) Density(g/cm3) Qp Qs
+#   boundaries labels (e.g., "moho") can be specified on a line by themselves,
+#   but are not used here.
+#   Multiline comments (/* ... */) or single line comments (//, #) are allowed.
+upper crust
+ 0.00  5.90 3.40 2.80 300.00 100.00
+lower crust
+20.00  6.50 3.70 2.80 300.00 100.00
+mantle
+30.00  8.20 4.40 2.80 300.00 100.00

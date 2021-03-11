@@ -4,7 +4,7 @@
 Wrapper for running Axitra
 
 :copyright:
-    2020 Claudio Satriano <satriano@ipgp.fr>
+    2020-2021 Claudio Satriano <satriano@ipgp.fr>
 :license:
     CeCILL Free Software License Agreement, Version 2.1
     (http://www.cecill.info/index.en.html)
@@ -14,6 +14,7 @@ import os
 import argparse
 import numpy as np
 from glob import glob
+from shutil import copyfile
 from obspy import read, UTCDateTime
 from obspy.io.sac import SACTrace
 from pyproj import Proj
@@ -86,10 +87,13 @@ def write_sources(config):
     axi_hist = os.path.join(config.run_name, 'axi.hist')
     fp_xyz = open(xyz_file, 'w')
     fp_hist = open(axi_hist, 'w')
-    for n, source in enumerate(config.sources_xyz):
-        line = '{:10d} {:14.3f} {:14.3f} {:14.3f}'.format(n+1, *source[:3])
+    for n, source in enumerate(config.sources):
+        line = '{:10d} {:14.3f} {:14.3f} {:14.3f}'.format(
+            n+1, source.x, source.y, source.z)
         fp_xyz.write(line + '\n')
-        line = '{} {:.1e} {} {} {} 0. 0. {}'.format(n+1, *source[3:8])
+        line = '{} {:.1e} {} {} {} 0. 0. {}'.format(
+            n+1, source.moment, source.strike, source.dip, source.rake,
+            source.offset-config.trace_start_offset)
         fp_hist.write(line + '\n')
     fp_xyz.close()
     fp_hist.close()
@@ -142,6 +146,26 @@ def read_station_file(config):
     config.stations = stations
 
 
+class Source():
+    """An axitra source."""
+
+    def __init__(self, line):
+        word = line.split()
+        # we don't know, at this stage, wether source is in cartesian...
+        self.x = float(word[0])
+        self.y = float(word[1])
+        # ...or geographical coordinates
+        self.lat = float(word[0])
+        self.lon = float(word[1])
+        self.z = float(word[2])
+        self.moment = float(word[3])
+        self.strike = float(word[4])
+        self.dip = float(word[5])
+        self.rake = float(word[6])
+        self.origin_time = UTCDateTime(word[7])
+        self.offset = 0.
+
+
 def read_source_file(config):
     try:
         fp = open(config.sources_file, 'r')
@@ -149,24 +173,24 @@ def read_source_file(config):
         err_exit(err)
     sources = []
     for line in fp.readlines():
-        words = line.split()
-        if words[0] == '#':
+        if line.strip().startswith('#'):
             continue
-        source = [float(w) for w in words[:8]]
-        sources.append(source)
+        sources.append(Source(line))
     fp.close()
+    config.min_origin_time = min(s.origin_time for s in sources)
+    for s in sources:
+        s.offset = s.origin_time - config.min_origin_time
     config.sources = sources
 
 
 def project(config):
     if not config.geographical_coordinates:
         config.stations_xyz = config.stations
-        config.sources_xyz = config.sources
         return
     lats_sta = np.array([s[1] for s in config.stations])
     lons_sta = np.array([s[2] for s in config.stations])
-    lats_src = np.array([s[0] for s in config.sources])
-    lons_src = np.array([s[1] for s in config.sources])
+    lats_src = np.array([s.lat for s in config.sources])
+    lons_src = np.array([s.lon for s in config.sources])
     lats = np.hstack((lats_sta, lats_src))
     lons = np.hstack((lons_sta, lons_src))
     lon0 = np.mean(lons)
@@ -179,19 +203,16 @@ def project(config):
         # projection output is in meters
         # AXITRA convention is x=north and y=east
         y, x = p(station[2], station[1])
-        # convert z to meters
-        z = station[3]*1e3
+        # z is in meters
+        z = station[3]
         stations_xyz.append([station[0], x, y, z])
     config.stations_xyz = stations_xyz
-    sources_xyz = []
+    # sources_xyz = []
     for source in config.sources:
         # projection output is in meters
         # AXITRA convention is x=north and y=east
-        y, x = p(source[1], source[0])
-        # convert z to meters
-        z = source[2]*1e3
-        sources_xyz.append([x, y, z] + source[3:8])
-    config.sources_xyz = sources_xyz
+        source.y, source.x = p(source.lon, source.lat)
+    # config.sources_xyz = sources_xyz
     config.projection = p
 
 
@@ -269,7 +290,7 @@ def update_traces(config):
             tr.stats.sac.stlo = station[2]
             tr.stats.sac.stel = station[3]
             sac = SACTrace.from_obspy_trace(tr)
-            sac.reftime = UTCDateTime(config.origin_time)
+            sac.reftime = config.min_origin_time+config.trace_start_offset
             sac.b = 0
             outfile = tr.id + '.sac'
             outfile = os.path.join(config.run_name, outfile)
@@ -287,9 +308,21 @@ class dotdict(dict):
 
 def parse_configspec():
     curdir = os.path.dirname(__file__)
-    configspec_file = os.path.join(curdir, 'configspec.conf')
+    configspec_file = os.path.join(curdir, 'conf', 'configspec.conf')
     configspec = read_config(configspec_file)
     return configspec
+
+
+def _write_ok(filepath):
+    if os.path.exists(filepath):
+        ans = input(
+            '"{}" already exists. '
+            'Do you want to overwrite it? [y/N] '.format(filepath))
+        if ans in ['y', 'Y']:
+            return True
+        else:
+            return False
+    return True
 
 
 def write_sample_config(configspec, progname):
@@ -300,23 +333,17 @@ def write_sample_config(configspec, progname):
     c.initial_comment = configspec.initial_comment
     c.comments = configspec.comments
     configfile = progname + '.conf'
-    write_file = True
-    if os.path.exists(configfile):
-        # Workaround for python2/3 compatibility
-        try:
-            raw_input = input
-        except NameError:
-            pass
-        ans = raw_input('%s already exists. '
-                        'Do you want to overwrite it? [y/N] ' % configfile)
-        if ans in ['y', 'Y']:
-            write_file = True
-        else:
-            write_file = False
-    if write_file:
+    if _write_ok(configfile):
         with open(configfile, 'wb') as fp:
             c.write(fp)
-        print('Sample config file written to: ' + configfile)
+        print('Sample config file written to: "{}"'.format(configfile))
+    curdir = os.path.dirname(__file__)
+    confdir = os.path.join(curdir, 'conf')
+    for file in ['sources.conf', 'stations.conf', 'velocity.nd']:
+        if _write_ok(file):
+            copyfile(os.path.join(confdir, file), file)
+            file_type = os.path.splitext(file)[0].rstrip('s')
+            print('Sample {} file written to: "{}"'.format(file_type, file))
 
 
 def read_config(config_file, configspec=None):

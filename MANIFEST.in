@@ -2,5 +2,5 @@ include ChangeLog.txt
 include README.md
 include LICENSE.txt
 include CONTRIBUTORS.txt
-include pyaxitra/configspec.conf
+include pyaxitra/conf/*
 include pyaxitra/RELEASE-VERSION
