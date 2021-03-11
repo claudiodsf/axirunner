@@ -8,7 +8,7 @@ import sys
 
 # Import the version string.
 path = os.path.join(os.path.abspath(os.path.dirname(inspect.getfile(
-    inspect.currentframe()))), 'pyaxitra')
+    inspect.currentframe()))), 'axirunner')
 sys.path.insert(0, path)
 from version import get_git_version
 
@@ -18,15 +18,16 @@ with open('README.md', 'rb') as f:
 
 
 setup(
-    name='pyaxitra',
-    packages=['pyaxitra', 'pyaxitra.configobj'],
+    name='axirunner',
+    packages=['axirunner', 'axirunner.configobj'],
     include_package_data=True,
     entry_points={
-        'console_scripts': ['run_axitra = pyaxitra.run_axitra:main']
+        'console_scripts': ['axirunner = axirunner.axirunner:main']
         },
     version=get_git_version(),
-    description='Python bindings for Axitra',
+    description='Make synthetic seismograms using Axitra. The easy way™.',
     long_description=long_descr,
+    long_description_content_type='text/markdown',
     author='Claudio Satriano',
     author_email='satriano@ipgp.fr',
     url='http://www.ipgp.fr/~satriano',
@@ -36,8 +37,8 @@ setup(
             'Development Status :: Development Status :: 2 - Pre-Alpha',
             'Environment :: Console',
             'Intended Audience :: Science/Research',
-            'License :: OSI Approved :: CeCILL Free Software License '
-                'Agreement, Version 2.1',
+            'License :: OSI Approved :: CEA CNRS Inria Logiciel Libre '
+                'License, version 2.1 (CeCILL-2.1)',
             'Operating System :: OS Independent',
             'Programming Language :: Python',
             'Programming Language :: Python :: 3',

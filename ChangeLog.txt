@@ -1,6 +1,6 @@
-PyAxitra
-Python bindings to Axitra
-(c) 2020 Claudio Satriano <satriano@ipgp.fr>
+AxiRunner
+Make synthetic seismograms using Axitra. The easy way™.
+(c) 2020-2021 Claudio Satriano <satriano@ipgp.fr>
 
-v0.1 - 2020-04-XX
+v0.1 - 2021-03-XX
 	- Initial release

@@ -1,10 +1,12 @@
-# PyAxitra
-> Python bindings to Axitra
->
-> (c) 2020 Claudio Satriano
+# AxiRunner
+Make synthetic seismograms using [Axitra]. The easy way™.
+
+(c) 2020-2021 Claudio Satriano
+
+[axitra]:https://github.com/coutanto/axitra
 
 ## Installation
-Clone or donwload this repository, then from within the main repository directory, run:
+Clone or download this repository, then from within the main repository directory, run:
 
     pip install .
 
@@ -13,19 +15,19 @@ You can also install in editable mode (for developers), with:
     pip install -e .
 
 ## Running
-To generate a sample config file:
+To generate a sample set of config files:
 
-    run_axitra -s
+    axirunner -s
 
-The sample config file should be (hopefully) self-explanatory.
+The sample config files should be (hopefully) self-explanatory.
 
 To run, using a config file:
 
-    run_axitra -c <CONFIGFILE>
+    axirunner -c <CONFIGFILE>
 
 To get help:
 
-    run_axitra -h
+    axirunner -h
 
 ## Limitations
 Only the "moment" version of Axitra is currently supported and only for

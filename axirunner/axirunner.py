@@ -399,7 +399,7 @@ def main():
     args = parse_arguments()
     configspec = parse_configspec()
     if args.sampleconfig:
-        write_sample_config(configspec, 'run_axitra')
+        write_sample_config(configspec, 'axirunner')
         sys.exit(0)
     config = read_config(args.configfile, configspec)
     validate_config(config)
