@@ -49,6 +49,21 @@ class Source():
         self.offset = 0.
 
 
+class Station():
+    """An axitra station."""
+
+    def __init__(self, line):
+        word = line.split()
+        self.code = word[0]
+        # we don't know, at this stage, wether source is in cartesian...
+        self.x = float(word[1])
+        self.y = float(word[2])
+        # ...or geographical coordinates
+        self.lat = float(word[1])
+        self.lon = float(word[2])
+        self.z = float(word[3])
+
+
 class Axirunner():
     """Wrapper class for configuring and running axitra and convm."""
 
@@ -110,11 +125,9 @@ class Axirunner():
             err_exit(err)
         stations = []
         for line in fp.readlines():
-            words = line.split()
-            if words[0] == '#':
+            if line.strip().startswith('#'):
                 continue
-            station = [words[0]] + [float(w) for w in words[1:4]]
-            stations.append(station)
+            stations.append(Station(line))
         fp.close()
         self.stations = stations
 
@@ -136,10 +149,9 @@ class Axirunner():
 
     def coordinate_projection(self):
         if not self.geographical_coordinates:
-            self.stations_xyz = self.stations
             return
-        lats_sta = np.array([s[1] for s in self.stations])
-        lons_sta = np.array([s[2] for s in self.stations])
+        lats_sta = np.array([s.lat for s in self.stations])
+        lons_sta = np.array([s.lon for s in self.stations])
         lats_src = np.array([s.lat for s in self.sources])
         lons_src = np.array([s.lon for s in self.sources])
         lats = np.hstack((lats_sta, lats_src))
@@ -149,15 +161,10 @@ class Axirunner():
         lat1 = np.floor(np.min(lats))
         lat2 = np.ceil(np.max(lats))
         p = Proj(proj='lcc', lat_0=lat0, lon_0=lon0, lat_1=lat1, lat_2=lat2)
-        stations_xyz = []
         for station in self.stations:
             # projection output is in meters
             # AXITRA convention is x=north and y=east
-            y, x = p(station[2], station[1])
-            # z is in meters
-            z = station[3]
-            stations_xyz.append([station[0], x, y, z])
-        self.stations_xyz = stations_xyz
+            station.y, station.x = p(station.lon, station.lat)
         for source in self.sources:
             # projection output is in meters
             # AXITRA convention is x=north and y=east
@@ -201,9 +208,9 @@ class Axirunner():
     def write_stations(self):
         outfile = os.path.join(self.run_name, 'station.xyz')
         with open(outfile, 'w') as fp:
-            for n, station in enumerate(self.stations_xyz):
+            for n, station in enumerate(self.stations):
                 line = '{:10d} {:14.3f} {:14.3f} {:14.3f}'.format(
-                    n+1, *station[1:4])
+                    n+1, station.x, station.y, station.z)
                 fp.write(line + '\n')
 
     def write_sources(self):
@@ -264,7 +271,7 @@ class Axirunner():
         cmp = {'X': 'N', 'Y': 'E', 'Z': 'Z'}
         instr = {'velocity': 'H', 'displacement': 'H', 'acceleration': 'N'}
         for n, station in enumerate(self.stations):
-            stid = station[0].split('.')
+            stid = station.code.split('.')
             if len(stid) == 3:
                 net, sta, loc = stid
             elif len(stid) == 2:
@@ -290,9 +297,9 @@ class Axirunner():
                     band = 'H'
                 channel = band + instr[self.output] + cmp[tr.stats.channel]
                 tr.stats.channel = channel
-                tr.stats.sac.stla = station[1]
-                tr.stats.sac.stlo = station[2]
-                tr.stats.sac.stel = station[3]
+                tr.stats.sac.stla = station.lat
+                tr.stats.sac.stlo = station.lon
+                tr.stats.sac.stel = -station.z
                 sac = SACTrace.from_obspy_trace(tr)
                 sac.reftime = self.min_origin_time+self.trace_start_offset
                 sac.b = 0
