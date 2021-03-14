@@ -270,6 +270,7 @@ class Axirunner():
         # AXITRA convention is x=north and y=east
         cmp = {'X': 'N', 'Y': 'E', 'Z': 'Z'}
         instr = {'velocity': 'H', 'displacement': 'H', 'acceleration': 'N'}
+        idep = {'velocity': 7, 'displacement': 6, 'acceleration': 8}
         for n, station in enumerate(self.stations):
             stid = station.code.split('.')
             if len(stid) == 3:
@@ -297,6 +298,11 @@ class Axirunner():
                     band = 'H'
                 channel = band + instr[self.output] + cmp[tr.stats.channel]
                 tr.stats.channel = channel
+                # Set SAC data type. Note that SAC data amplitude is in nm,
+                # nm/s or nm/s/s, so we need to multiply by 1e9
+                # https://ds.iris.edu/files/sac-manual/manual/file_format.html
+                tr.data *= 1e9
+                tr.stats.sac.idep = idep[self.output]
                 tr.stats.sac.stla = station.lat
                 tr.stats.sac.stlo = station.lon
                 tr.stats.sac.stel = -station.z
