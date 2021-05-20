@@ -24,7 +24,7 @@ setup(
     license='CeCILL Free Software License Agreement, Version 2.1',
     platforms='OS Independent',
     classifiers=[
-            'Development Status :: Development Status :: 2 - Pre-Alpha',
+            'Development Status :: 2 - Pre-Alpha',
             'Environment :: Console',
             'Intended Audience :: Science/Research',
             'License :: OSI Approved :: CEA CNRS Inria Logiciel Libre '
