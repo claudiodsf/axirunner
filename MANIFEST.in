@@ -2,5 +2,6 @@ include ChangeLog.txt
 include README.md
 include LICENSE.txt
 include CONTRIBUTORS.txt
+include versioneer.py
+include axirunner/_version.py
 include axirunner/conf/*
-include axirunner/RELEASE-VERSION

@@ -1,21 +1,10 @@
 # -*- coding: utf-8 -*-
 """setup.py: setuptools control."""
 from setuptools import setup
-
-import inspect
-import os
-import sys
-
-# Import the version string.
-path = os.path.join(os.path.abspath(os.path.dirname(inspect.getfile(
-    inspect.currentframe()))), 'axirunner')
-sys.path.insert(0, path)
-from version import get_git_version
-
+import versioneer
 
 with open('README.md', 'rb') as f:
     long_descr = f.read().decode('utf-8')
-
 
 setup(
     name='axirunner',
@@ -24,7 +13,8 @@ setup(
     entry_points={
         'console_scripts': ['axirunner = axirunner.axirunner:main']
         },
-    version=get_git_version(),
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     description='Make synthetic seismograms using Axitra. The easy way™.',
     long_description=long_descr,
     long_description_content_type='text/markdown',

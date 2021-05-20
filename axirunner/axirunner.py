@@ -18,7 +18,7 @@ from shutil import copyfile
 from obspy import read, UTCDateTime
 from obspy.io.sac import SACTrace
 from pyproj import Proj
-from .version import get_git_version
+from ._version import get_versions
 from .configobj import ConfigObj
 from .configobj.validate import Validator
 
@@ -399,7 +399,7 @@ def parse_arguments():
         help='write sample config file to current directory and exit')
     parser.add_argument(
         '-v', '--version', action='version',
-        version='%(prog)s {}'.format(get_git_version()))
+        version='%(prog)s {}'.format(get_versions()['version']))
     args = parser.parse_args()
     return args
 # END: USER INTERFACE ---------------------------------------------------------
