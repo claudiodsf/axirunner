@@ -174,13 +174,10 @@ class Axirunner():
     def write_axi_data(self):
         axi_data = '&input\n'
         axi_data +=\
-            'nc={},nfreq={},tl={},aw={},nr={},ns={},xl={},ikmax={},\n'.format(
-                len(self.layers),
+            'nfreq={},tl={},aw={},xl={},ikmax={},\n'.format(
                 self.number_of_frequencies,
                 self.time_length,
                 self.imaginary_freq_coefficient,
-                len(self.stations),
-                len(self.sources),
                 self.medium_periodicity,
                 self.max_iterations
             )

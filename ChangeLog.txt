@@ -2,5 +2,8 @@ AxiRunner
 Make synthetic seismograms using Axitra. The easy way™.
 (c) 2020-2021 Claudio Satriano <satriano@ipgp.fr>
 
+v0.2 - 2021-06-22
+	- Compatibility with GitHub version of Axitra
+
 v0.1 - 2021-05-20
 	- Initial release
