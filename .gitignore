@@ -10,3 +10,6 @@
 dist/
 build/
 RELEASE-VERSION
+
+#IDE
+.vscode
